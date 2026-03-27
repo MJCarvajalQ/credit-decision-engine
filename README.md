@@ -45,3 +45,19 @@ max_approvable = min(€10,000, credit_modifier × loan_period)
 6. If no period yields a valid amount, return a negative decision.
 
 **Constraints:** loan amount €2,000–€10,000 · period 12–60 months.
+
+## What I Would Improve About the Assignment
+
+The assignment defines only two possible outcomes: positive and negative. It does not cover the case where the engine approves a different amount than what was requested. This is actually the most common situation: an applicant asks for €4,000, the engine can only approve €2,500, and the API returns positive. That response is technically correct but unclear, because the frontend has no way to tell "approved exactly what was asked" from "approved something less." This forces the UI to handle a decision that should have been made in the engine.
+
+I would fix this by adding a third outcome: partial.
+
+```
+NEGATIVE  → no valid amount exists within the defined constraints
+PARTIAL   → a valid amount was found, but it is less than the requested amount
+POSITIVE  → the requested amount was approved as requested
+```
+
+This follows a common pattern in fintech called a counteroffer. Having it as an explicit outcome in the API means the frontend can show it clearly ("we cannot approve €4,000, but we can offer you €2,500") instead of hiding it behind a generic positive response. This matters for the business too: applicants who receive a clear counteroffer are more likely to accept than those who receive a generic rejection, because they feel treated honestly. Leaving this implicit forces a product decision into the UI layer, where it does not belong.
+
+The code change is small: one comparison between the approved amount and the requested amount before returning the response. The real benefit is making the behavior explicit and clear.
